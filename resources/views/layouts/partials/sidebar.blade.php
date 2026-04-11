@@ -29,15 +29,22 @@
       <div class="nav-section-label">Inventori</div>
 
       {{-- Barang & Stok (with submenu) --}}
+      @php $lowStock = \App\Models\Product::whereRaw('stock < min_stock')->count() @endphp
       <div class="nav-item has-sub {{ request()->routeIs('barang.*') || request()->routeIs('kategori.*') ? 'open active' : '' }}">
         <i class="ri-stack-line"></i>
         <span>Barang &amp; Stok</span>
+        @if($lowStock > 0)
+          <span class="nav-badge">{{ $lowStock }}</span>
+        @endif
         <i class="ri-arrow-right-s-line chevron"></i>
       </div>
       <div class="nav-submenu">
         <a href="{{ route('barang.index') }}"
-           class="nav-item {{ request()->routeIs('barang.*') ? 'active' : '' }}">
+          class="nav-item {{ request()->routeIs('barang.*') ? 'active' : '' }}">
           <span>Daftar Barang</span>
+          @if($lowStock > 0)
+            <span class="nav-badge">{{ $lowStock }}</span>
+          @endif
         </a>
         <a href="{{ route('kategori.index') }}"
            class="nav-item {{ request()->routeIs('kategori.*') ? 'active' : '' }}">

@@ -74,6 +74,11 @@
 
 {{-- Global scripts --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<script>
+  if (typeof Chart === 'undefined') {
+    document.write('<script src="{{ asset('js/chart.umd.min.js') }}">\x3C/script>');
+  }
+</script>
 <script src="{{ asset('js/app.js') }}"></script>
 
 {{-- Page-specific scripts --}}

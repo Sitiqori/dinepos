@@ -10,9 +10,12 @@
 @media(max-width:768px){ .lp-stats { grid-template-columns:1fr; } }
 .lp-stat { background:#fff; border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 20px; display:flex; align-items:center; gap:14px; }
 .lp-stat-icon { width:44px; height:44px; border-radius:var(--radius-sm); background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
-.lp-stat-label { font-size:.78rem; color:var(--text-muted); font-weight:600; margin-bottom:2px; }
-.lp-stat-val   { font-size:1.6rem; font-weight:800; color:var(--navy); font-family:'Syne',sans-serif; }
-
+.lp-stat-label { font-size:.88rem; color:var(--text-muted); font-weight:600; margin-bottom:2px; }
+.lp-stat-val   { font-size:1.9rem; font-weight:800; color:var(--navy); font-family:'Syne',sans-serif; }
+.lp-chart-title { font-size:1.1rem; }
+.lp-top-title { font-size:1.1rem; }
+.lp-tab { font-size:.9rem; }
+.top-prod-name { font-size:1rem; }
 /* ─── Filter toolbar ─────────────────── */
 .lp-toolbar {
   display:flex; align-items:center; justify-content:space-between;
@@ -165,7 +168,9 @@
     {{-- Chart --}}
     <div class="lp-chart-card">
       <div class="lp-chart-title">Pendapatan Harian</div>
-      <canvas id="laporanChart" style="height:260px;"></canvas>
+      <div style="position:relative; height:260px;">
+        <canvas id="laporanChart"></canvas>
+      </div>
     </div>
 
     {{-- Top Products --}}
@@ -293,8 +298,8 @@
 ══════════════════════════════════════ --}}
 <div class="lp-panel {{ $activeTab === 'perbandingan' ? 'active':'' }}" id="panel-perbandingan">
   <div class="lp-chart-card">
-    <div class="lp-chart-title">Perbandingan Pendapatan vs Pengeluaran</div>
-    <canvas id="compareChart" style="height:300px;"></canvas>
+    <div style="position:relative; height:300px;">
+    <canvas id="compareChart"></canvas>
   </div>
 </div>
 

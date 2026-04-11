@@ -45,10 +45,13 @@ class DashboardController extends Controller
 
         // ── Chart — last 7 days of selected month ────────
         $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
-        $startDay    = max(1, $daysInMonth - 6);
+        $today = now();
+        $isCurrentMonth = ((int)$year === $today->year && (int)$month === $today->month);
+        $endDay   = $isCurrentMonth ? $today->day : $daysInMonth;
+        $startDay = max(1, $endDay - 13);
         $chartLabels = $chartPenjualan = $chartTransaksi = $chartLaba = [];
 
-        for ($d = $startDay; $d <= $daysInMonth; $d++) {
+        for ($d = $startDay; $d <= $endDay; $d++) {
             $date = Carbon::createFromDate($year, $month, $d);
             $chartLabels[]    = $d . ' ' . $date->format('M');
             $dayRev           = Transaction::whereDate('paid_at', $date->toDateString())

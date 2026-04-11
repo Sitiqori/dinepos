@@ -37,8 +37,11 @@ class LaporanController extends Controller
 
         // ── Chart: daily revenue for selected month ───────
         $daysInMonth  = $startDate->daysInMonth;
+        $today = now();
+        $isCurrentMonth = ((int)$year === $today->year && (int)$month === $today->month);
+        $endDay = $isCurrentMonth ? $today->day : $daysInMonth;
         $chartLabels  = $chartRevenue = [];
-        for ($d = 1; $d <= $daysInMonth; $d++) {
+        for ($d = 1; $d <= $endDay; $d++) {
             $date = Carbon::createFromDate($year, $month, $d);
             $chartLabels[]  = $d . ' ' . $date->format('M');
             $chartRevenue[] = (int) Transaction::where('payment_status','paid')
@@ -94,6 +97,16 @@ class LaporanController extends Controller
 
     public function download(Request $request)
     {
-        return back()->with('success', 'Fitur unduh laporan akan segera hadir.');
+        $selectedMonth = $request->get('month', now()->format('Y-m'));
+        [$year, $month] = explode('-', $selectedMonth);
+        $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $endDate   = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+
+        $filename = 'laporan-' . $selectedMonth . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\LaporanExport($startDate, $endDate, $selectedMonth),
+            $filename
+        );
     }
 }

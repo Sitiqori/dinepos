@@ -78,7 +78,7 @@ window.DASHBOARD_DATA = {
         </option>
       @endforeach
     </select>
-    <a href="{{ route('laporan.download') }}" class="btn btn-outline btn-sm">
+    <a href="{{ route('laporan.download') }}?month={{ $selectedMonth }}" class="btn btn-outline btn-sm">
       <i class="ri-download-2-line"></i> Unduh Laporan
     </a>
   </div>
