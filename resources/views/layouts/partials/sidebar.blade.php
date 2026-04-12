@@ -20,6 +20,8 @@
         <span>Admin Dashboard</span>
       </a>
 
+      @php $totalNotifCount = $sidebarNotifCount ?? 0 @endphp
+
       <a href="{{ route('kasir.index') }}"
          class="nav-item {{ request()->routeIs('kasir.*') ? 'active' : '' }}">
         <i class="ri-shopping-cart-2-line"></i>

@@ -9,7 +9,9 @@ use App\Http\Controllers\PesananController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PengaturanController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // ── AUTH (guest only) ──────────────────────────
@@ -26,7 +28,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware('auth')->group(function () {
 
     Route::get('/', function () {
-        return redirect()->route(auth()->user()->isAdmin() ? 'dashboard' : 'kasir.index');
+        return redirect()->route(Auth::user()->isAdmin() ? 'dashboard' : 'kasir.index');
     });
 
     // ── KASIR & ADMIN ──────────────────────────
@@ -40,11 +42,19 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/transaksi',                    [TransaksiController::class, 'index'])->name('transaksi.index');
         Route::get('/transaksi/{transaksi}',        [TransaksiController::class, 'show'])->name('transaksi.show');
+
+        // Notif count dipanggil navbar — accessible kasir & admin
+        Route::get('/notifikasi/count', [NotifikasiController::class, 'count'])->name('notifikasi.count');
     });
 
     // ── ADMIN ONLY ─────────────────────────────
     Route::middleware('role:admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // ── NOTIFIKASI ───────────────────────────
+        Route::get('/notifikasi',          [NotifikasiController::class, 'index'])->name('notifikasi.index');
+        Route::post('/notifikasi/read',    [NotifikasiController::class, 'markRead'])->name('notifikasi.read');
+        Route::post('/notifikasi/read-all',[NotifikasiController::class, 'markAllRead'])->name('notifikasi.read-all');
 
         // ── BARANG ──────────────────────────────
         // IMPORTANT: static routes MUST be declared before {barang} param route

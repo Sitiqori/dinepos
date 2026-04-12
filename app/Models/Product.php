@@ -12,15 +12,16 @@ class Product extends Model
     protected $fillable = [
         'category_id', 'name', 'slug', 'sku', 'barcode', 'unit',
         'description', 'price', 'cost_price', 'stock', 'min_stock',
-        'image', 'is_active',
+        'expiry_date', 'image', 'is_active',
     ];
 
     protected $casts = [
-        'price'      => 'integer',
-        'cost_price' => 'integer',
-        'stock'      => 'integer',
-        'min_stock'  => 'integer',
-        'is_active'  => 'boolean',
+        'price'       => 'integer',
+        'cost_price'  => 'integer',
+        'stock'       => 'integer',
+        'min_stock'   => 'integer',
+        'expiry_date' => 'date',
+        'is_active'   => 'boolean',
     ];
 
     public function category()   { return $this->belongsTo(Category::class); }

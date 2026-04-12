@@ -74,6 +74,12 @@
 .pcard .paddbtn { width: 28px; height: 28px; border-radius: 8px; background: var(--navy); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; transition: all .15s; flex-shrink: 0; }
 .pcard .paddbtn:hover { background: var(--blue); transform: scale(1.1); }
 
+/* In-card qty control (GoFood style) */
+.pcard .pqty-ctrl { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--navy); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.pcard .pqty-ctrl button { width: 26px; height: 26px; border: none; background: var(--navy); color: #fff; cursor: pointer; font-size: .95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: background .12s; flex-shrink: 0; }
+.pcard .pqty-ctrl button:hover { background: var(--blue); }
+.pcard .pqty-ctrl .pqval { min-width: 24px; text-align: center; font-size: .82rem; font-weight: 800; color: var(--navy); background: #fff; padding: 0 2px; line-height: 26px; }
+
 .no-results { text-align: center; padding: 50px 20px; color: var(--text-muted); }
 .no-results i { font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: .3; }
 
@@ -269,9 +275,7 @@
                 <div class="pprice">Rp {{ number_format($p->price,0,',','.') }}</div>
                 <div class="pstock {{ $p->stock <= 5 ? 'low' : 'ok' }}">Stok: {{ $p->stock }}</div>
               </div>
-              <button class="paddbtn" onclick="event.stopPropagation();addToCart(document.getElementById('pc-{{ $p->id }}'))">
-                <i class="ri-add-line"></i>
-              </button>
+              {{-- tombol + akan di-inject JS via updateCardControl() --}}
             </div>
           </div>
         </div>
@@ -473,29 +477,66 @@ function addToCart(el) {
     cart[id] = { id, name, code, price, qty: 1, stock };
   }
   el.classList.add('in-cart');
+  updateCardControl(id);
   renderCart();
 }
 
 function chgQty(id, d) {
   if (!cart[id]) return;
+  const stock = cart[id].stock;
+  if (d > 0 && cart[id].qty >= stock) { toast('Stok tidak cukup!','error'); return; }
   cart[id].qty += d;
   if (cart[id].qty <= 0) {
     delete cart[id];
-    document.querySelector(`[data-id="${id}"]`)?.classList.remove('in-cart');
+    const card = document.querySelector(`[data-id="${id}"]`);
+    card?.classList.remove('in-cart');
+    updateCardControl(id);
+  } else {
+    updateCardControl(id);
   }
   renderCart();
 }
 
 function rmItem(id) {
   delete cart[id];
-  document.querySelector(`[data-id="${id}"]`)?.classList.remove('in-cart');
+  const card = document.querySelector(`[data-id="${id}"]`);
+  card?.classList.remove('in-cart');
+  updateCardControl(id);
   renderCart();
 }
 
 function clearCart() {
+  Object.keys(cart).forEach(id => {
+    document.querySelector(`[data-id="${id}"]`)?.classList.remove('in-cart');
+    updateCardControl(id);
+  });
   cart = {};
-  document.querySelectorAll('.pcard').forEach(c => c.classList.remove('in-cart'));
   renderCart();
+}
+
+// Update the + button OR - qty + control on the product card
+function updateCardControl(id) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const bottom = card.querySelector('.pbottom');
+  const existing = bottom.querySelector('.paddbtn, .pqty-ctrl');
+  if (existing) existing.remove();
+
+  if (cart[id]) {
+    const ctrl = document.createElement('div');
+    ctrl.className = 'pqty-ctrl';
+    ctrl.innerHTML = `
+      <button onclick="event.stopPropagation();chgQty('${id}',-1)">−</button>
+      <span class="pqval" id="pqval-${id}">${cart[id].qty}</span>
+      <button onclick="event.stopPropagation();chgQty('${id}',1)">+</button>`;
+    bottom.appendChild(ctrl);
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'paddbtn';
+    btn.innerHTML = '<i class="ri-add-line"></i>';
+    btn.onclick = function(e) { e.stopPropagation(); addToCart(card); };
+    bottom.appendChild(btn);
+  }
 }
 
 function renderCart() {
@@ -838,5 +879,7 @@ function toast(msg, type='success') {
 // Init
 renderCart();
 recalc();
+// Render tombol + di semua kartu produk
+document.querySelectorAll('.pcard').forEach(card => updateCardControl(card.dataset.id));
 </script>
 @endpush

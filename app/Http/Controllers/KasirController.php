@@ -123,11 +123,18 @@ class KasirController extends Controller
 
             DB::commit();
 
+            // Kirim stok terbaru ke frontend supaya kartu produk update tanpa reload
+            $updatedStock = collect($lines)->map(fn($l) => [
+                'id'    => (int) $l['product']->id,
+                'stock' => (int) $l['product']->fresh()->stock,
+            ])->values();
+
             return response()->json([
-                'success'      => true,
-                'message'      => 'Pesanan berhasil dibuat dan menunggu diproses.',
-                'order_code'   => $order->order_code,
-                'invoice_code' => $transaction->invoice_code,
+                'success'       => true,
+                'message'       => 'Pesanan berhasil dibuat dan menunggu diproses.',
+                'order_code'    => $order->order_code,
+                'invoice_code'  => $transaction->invoice_code,
+                'updated_stock' => $updatedStock,
             ]);
 
         } catch (\Throwable $e) {

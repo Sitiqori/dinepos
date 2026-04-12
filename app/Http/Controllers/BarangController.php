@@ -207,30 +207,33 @@ class BarangController extends Controller
             $this->hasColumn('sku') ? 'sku' : 'name'
         )->get();
 
-        $hasSku      = $this->hasColumn('sku');
-        $hasUnit     = $this->hasColumn('unit');
-        $hasMinStock = $this->hasColumn('min_stock');
+        $hasSku        = $this->hasColumn('sku');
+        $hasUnit       = $this->hasColumn('unit');
+        $hasMinStock   = $this->hasColumn('min_stock');
+        $hasExpiryDate = $this->hasColumn('expiry_date');
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="barang-'.now()->format('Ymd').'.csv"',
         ];
 
-        $callback = function () use ($products, $hasSku, $hasUnit, $hasMinStock) {
+        $callback = function () use ($products, $hasSku, $hasUnit, $hasMinStock, $hasExpiryDate) {
             $f = fopen('php://output', 'w');
             fprintf($f, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM for Excel
 
             $header = ['#', 'Nama Barang', 'Kategori', 'HPP', 'Harga Jual', 'Stok', 'Status'];
-            if ($hasSku)      array_splice($header, 1, 0, ['Kode Barang']);
-            if ($hasUnit)     array_splice($header, $hasSku ? 4 : 3, 0, ['Satuan']);
-            if ($hasMinStock) array_splice($header, count($header) - 1, 0, ['Min. Stok']);
+            if ($hasSku)        array_splice($header, 1, 0, ['Kode Barang']);
+            if ($hasUnit)       array_splice($header, $hasSku ? 4 : 3, 0, ['Satuan']);
+            if ($hasMinStock)   array_splice($header, count($header) - 1, 0, ['Min. Stok']);
+            if ($hasExpiryDate) array_splice($header, count($header) - 1, 0, ['Kadaluarsa']);
             fputcsv($f, $header);
 
             foreach ($products as $i => $p) {
                 $row = [$i + 1, $p->name, $p->category?->name ?? '-', $p->cost_price, $p->price, $p->stock, $p->is_active ? 'Aktif' : 'Nonaktif'];
-                if ($hasSku)      array_splice($row, 1, 0, [$p->sku ?? '-']);
-                if ($hasUnit)     array_splice($row, $hasSku ? 4 : 3, 0, [$p->unit ?? 'Pcs']);
-                if ($hasMinStock) array_splice($row, count($row) - 1, 0, [$p->min_stock ?? 0]);
+                if ($hasSku)        array_splice($row, 1, 0, [$p->sku ?? '-']);
+                if ($hasUnit)       array_splice($row, $hasSku ? 4 : 3, 0, [$p->unit ?? 'Pcs']);
+                if ($hasMinStock)   array_splice($row, count($row) - 1, 0, [$p->min_stock ?? 0]);
+                if ($hasExpiryDate) array_splice($row, count($row) - 1, 0, [$p->expiry_date ? $p->expiry_date->format('d/m/Y') : '-']);
                 fputcsv($f, $row);
             }
             fclose($f);

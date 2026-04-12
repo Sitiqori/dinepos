@@ -17,10 +17,11 @@
     </div>
 
     {{-- Notifications --}}
-    <div class="notif-btn" id="notifBtn" title="Notifikasi">
+    <a href="{{ route('notifikasi.index') }}" class="notif-btn {{ request()->routeIs('notifikasi.*') ? 'notif-btn-active' : '' }}" id="notifBtn" title="Notifikasi">
       <i class="ri-notification-3-line"></i>
-      <span class="notif-dot"></span>
-    </div>
+      <span class="notif-dot" id="notifDot" style="display:none;"></span>
+      <span class="notif-count-badge" id="notifCount" style="display:none;"></span>
+    </a>
 
     {{-- User chip --}}
     <div class="topbar-user" id="topbarUser">
@@ -32,3 +33,26 @@
     </div>
   </div>
 </header>
+
+@push('scripts')
+<script>
+(function pollNotif() {
+  fetch('{{ route("notifikasi.count") }}', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } })
+    .then(r => r.json())
+    .then(data => {
+      const dot   = document.getElementById('notifDot');
+      const badge = document.getElementById('notifCount');
+      if (data.total > 0) {
+        dot.style.display   = 'block';
+        badge.style.display = 'flex';
+        badge.textContent   = data.total > 99 ? '99+' : data.total;
+      } else {
+        dot.style.display   = 'none';
+        badge.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  setTimeout(pollNotif, 60000); // refresh every 60s
+})();
+</script>
+@endpush

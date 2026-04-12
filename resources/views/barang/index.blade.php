@@ -185,6 +185,7 @@
           <th>Harga jual</th>
           <th>Stok</th>
           <th>Min. stok</th>
+          <th>Kadaluarsa</th>
           <th>Status</th>
           <th>Aksi</th>
         </tr>
@@ -200,6 +201,7 @@
           <td style="font-weight:700;">Rp {{ number_format($p->price,0,',','.') }}</td>
           <td class="{{ $p->isLowStock() ? 'stock-low' : 'stock-ok' }}">{{ $p->stock }}</td>
           <td>{{ $p->min_stock ?? 0 }}</td>
+          <td>{{ $p->expiry_date ? $p->expiry_date->format('d/m/Y') : '-' }}</td>
           <td>
             <span class="status-badge {{ $p->is_active ? 'status-aktif' : 'status-off' }}">
               {{ $p->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -338,6 +340,13 @@
             <span class="merr" id="addErr_min_stock"></span>
           </div>
 
+          {{-- Kadaluarsa --}}
+          <div class="mfg">
+            <label class="mfl">Tanggal kadaluarsa (opsional)</label>
+            <input type="date" name="expiry_date" class="mfc" />
+            <span class="merr" id="addErr_expiry_date"></span>
+          </div>
+
           {{-- Status --}}
           <div class="mfg mform-full">
             <label class="mfl">Status aktif</label>
@@ -444,6 +453,10 @@
           <div class="mfg">
             <label class="mfl">Minimum stok <span class="req">*</span></label>
             <input type="number" name="min_stock" id="eMinStock" class="mfc" min="0" />
+          </div>
+          <div class="mfg">
+            <label class="mfl">Tanggal kadaluarsa</label>
+            <input type="date" name="expiry_date" id="eExpiryDate" class="mfc" />
           </div>
           <div class="mfg mform-full">
             <label class="mfl">Status aktif</label>
@@ -636,6 +649,7 @@ async function openEditModal(id) {
     document.getElementById('ePrice').value         = p.price;
     document.getElementById('eStock').value         = p.stock;
     document.getElementById('eMinStock').value      = p.min_stock || 0;
+    document.getElementById('eExpiryDate').value    = p.expiry_date ? p.expiry_date.substring(0,10) : '';
     document.getElementById('eActive').checked      = p.is_active;
 
     // Image preview
@@ -744,6 +758,7 @@ function updateRow(p) {
 function buildRow(p, isLow) {
   const fmt = n => 'Rp '+parseInt(n).toLocaleString('id-ID');
   const escName = (p.name||'').replace(/'/g,"\\'");
+  const expiry = p.expiry_date ? new Date(p.expiry_date).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}) : '-';
   return `
     <td style="font-family:monospace;font-size:.82rem;font-weight:600;">${p.sku||'-'}</td>
     <td style="font-weight:600;">${p.name}</td>
@@ -753,6 +768,7 @@ function buildRow(p, isLow) {
     <td style="font-weight:700;">${fmt(p.price)}</td>
     <td class="${isLow?'stock-low':'stock-ok'}">${p.stock}</td>
     <td>${p.min_stock||0}</td>
+    <td>${expiry}</td>
     <td><span class="status-badge ${p.is_active?'status-aktif':'status-off'}">${p.is_active?'Aktif':'Nonaktif'}</span></td>
     <td><div class="act-btns">
       <button class="act-btn act-edit" onclick="openEditModal(${p.id})" title="Edit"><i class="ri-pencil-line"></i></button>

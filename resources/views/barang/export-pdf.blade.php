@@ -46,6 +46,7 @@
         <th>Harga Jual</th>
         <th>Stok</th>
         <th>Min. Stok</th>
+        <th>Kadaluarsa</th>
         <th>Status</th>
       </tr>
     </thead>
@@ -61,6 +62,7 @@
         <td>Rp {{ number_format($p->price, 0, ',', '.') }}</td>
         <td class="{{ $p->isLowStock() ? 'low' : '' }}">{{ $p->stock }}</td>
         <td>{{ $p->min_stock ?? 0 }}</td>
+        <td>{{ $p->expiry_date ? $p->expiry_date->format('d/m/Y') : '-' }}</td>
         <td>
           @if($p->is_active)
             <span class="badge">Aktif</span>
