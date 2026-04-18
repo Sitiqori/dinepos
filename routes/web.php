@@ -39,12 +39,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/pesanan',                      [PesananController::class, 'index'])->name('pesanan.index');
         Route::get('/pesanan/{pesanan}',            [PesananController::class, 'show'])->name('pesanan.show');
         Route::patch('/pesanan/{pesanan}/status',   [PesananController::class, 'updateStatus'])->name('pesanan.status');
+        Route::delete('/pesanan/{pesanan}',         [PesananController::class, 'destroy'])->name('pesanan.destroy');
+        Route::delete('/pesanan',                   [PesananController::class, 'destroyBulk'])->name('pesanan.destroy-bulk');
 
         Route::get('/transaksi',                    [TransaksiController::class, 'index'])->name('transaksi.index');
         Route::get('/transaksi/{transaksi}',        [TransaksiController::class, 'show'])->name('transaksi.show');
 
-        // Notif count dipanggil navbar — accessible kasir & admin
-        Route::get('/notifikasi/count', [NotifikasiController::class, 'count'])->name('notifikasi.count');
+        // Notif count + events dipanggil navbar — accessible kasir & admin
+        Route::get('/notifikasi/count',  [NotifikasiController::class, 'count'])->name('notifikasi.count');
+        Route::get('/notifikasi/events', [NotifikasiController::class, 'events'])->name('notifikasi.events');
     });
 
     // ── ADMIN ONLY ─────────────────────────────

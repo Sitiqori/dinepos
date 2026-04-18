@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PesananController extends Controller
 {
@@ -52,6 +54,56 @@ class PesananController extends Controller
     {
         $pesanan->load(['items.product', 'user', 'transaction']);
         return response()->json($pesanan);
+    }
+
+    public function destroy(Order $pesanan)
+    {
+        DB::transaction(function () use ($pesanan) {
+            // Kembalikan stok untuk setiap item pesanan
+            foreach ($pesanan->items as $item) {
+                Product::where('id', $item->product_id)
+                    ->increment('stock', $item->qty);
+            }
+            $pesanan->items()->delete();
+            $pesanan->transaction()?->delete();
+            $pesanan->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => "Pesanan {$pesanan->order_code} dihapus, stok dikembalikan.",
+        ]);
+    }
+
+    public function destroyBulk(Request $request)
+    {
+        $request->validate([
+            'ids'   => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $orders  = Order::with('items')->whereIn('id', $request->ids)->get();
+        $deleted = 0;
+
+        DB::transaction(function () use ($orders, &$deleted) {
+            foreach ($orders as $pesanan) {
+                // Kembalikan stok
+                foreach ($pesanan->items as $item) {
+                    Product::where('id', $item->product_id)
+                        ->increment('stock', $item->qty);
+                }
+                $pesanan->items()->delete();
+                $pesanan->transaction()?->delete();
+                $pesanan->delete();
+                $deleted++;
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' => "{$deleted} pesanan dihapus, stok dikembalikan.",
+        ]);
     }
 
     public function updateStatus(Request $request, Order $pesanan)

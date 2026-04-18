@@ -12,6 +12,68 @@ use Illuminate\Support\Facades\Schema;
 
 class NotifikasiController extends Controller
 {
+    // ── EVENTS POLL (global push notification) ───
+    public function events(Request $request)
+    {
+        $since         = (int) $request->get('since', 0);
+        $sinceTime     = $since > 0 ? \Carbon\Carbon::createFromTimestamp($since) : now()->subSeconds(15);
+        $hasMinStock   = Schema::hasColumn('products', 'min_stock');
+        $hasExpiryDate = Schema::hasColumn('products', 'expiry_date');
+
+        // 1. Pesanan baru (created_at >= since)
+        $pesananBaru = Order::where('status', 'pending')
+            ->where('created_at', '>=', $sinceTime)
+            ->get(['id', 'order_code', 'total', 'created_at']);
+
+        // 2. Status update pesanan (updated_at >= since, bukan pending)
+        $statusUpdate = Order::whereIn('status', ['processing', 'completed', 'cancelled'])
+            ->where('updated_at', '>=', $sinceTime)
+            ->get(['id', 'order_code', 'status', 'updated_at']);
+
+        // 3. Bayar berhasil (paid_at >= since)
+        $bayarBerhasil = \App\Models\Transaction::where('payment_status', 'paid')
+            ->where('paid_at', '>=', $sinceTime)
+            ->get(['id', 'invoice_code', 'amount', 'payment_method', 'paid_at']);
+
+        // 4. Stok menipis (hanya kirim sekali — cek sejak kapan pun, tapi pakai session key di JS)
+        $stokMenipis = collect();
+        if ($hasMinStock) {
+            $stokMenipis = Product::whereColumn('stock', '<=', 'min_stock')
+                ->where('updated_at', '>=', $sinceTime)
+                ->get(['id', 'name', 'stock']);
+        }
+
+        // 5. Kadaluarsa mendekat (≤ 7 hari) — kirim kalau belum pernah muncul hari ini
+        $kadaluarsa = collect();
+        $sudahKadaluarsa = collect();
+        if ($hasExpiryDate) {
+            $today = \Carbon\Carbon::today();
+            $kadaluarsa = Product::whereNotNull('expiry_date')
+                ->whereDate('expiry_date', '>=', $today)
+                ->whereDate('expiry_date', '<=', \Carbon\Carbon::today()->addDays(7))
+                ->get(['id', 'name', 'expiry_date'])
+                ->map(function ($p) use ($today) {
+                    $p->sisa_hari = $today->diffInDays($p->expiry_date);
+                    return $p;
+                });
+
+            $sudahKadaluarsa = Product::whereNotNull('expiry_date')
+                ->whereDate('expiry_date', '<', $today)
+                ->where('updated_at', '>=', $sinceTime)
+                ->get(['id', 'name', 'expiry_date']);
+        }
+
+        return response()->json([
+            'now'              => now()->timestamp,
+            'pesanan_baru'     => $pesananBaru,
+            'status_update'    => $statusUpdate,
+            'bayar_berhasil'   => $bayarBerhasil,
+            'stok_menipis'     => $stokMenipis,
+            'kadaluarsa'       => $kadaluarsa,
+            'sudah_kadaluarsa' => $sudahKadaluarsa,
+        ]);
+    }
+
     // ── INDEX ─────────────────────────────────────
     public function index()
     {

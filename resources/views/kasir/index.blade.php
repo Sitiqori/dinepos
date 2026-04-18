@@ -742,6 +742,25 @@ async function finishOrder(meth, cashGiven) {
     lastReceipt.orderCode   = data.order_code;
     lastReceipt.ordNum      = data.order_code?.replace('ORD-','') || ordNum;
 
+    // Fix 1: Update stok kartu produk langsung tanpa reload
+    if (data.updated_stock) {
+      data.updated_stock.forEach(({ id, stock }) => {
+        const card = document.querySelector(`[data-id="${id}"]`);
+        if (!card) return;
+        card.dataset.stock = stock;
+        const stockEl = card.querySelector('.pstock');
+        if (stockEl) {
+          stockEl.textContent = `Stok: ${stock}`;
+          stockEl.className   = `pstock ${stock <= 5 ? 'low' : 'ok'}`;
+        }
+        if (stock <= 0) {
+          card.classList.add('out-of-stock');
+          card.style.pointerEvents = 'none';
+          card.style.opacity = '0.5';
+        }
+      });
+    }
+
   } catch(err) {
     console.error('Network/fetch error:', err);
     toast('Koneksi gagal. Cek internet dan coba lagi.', 'error');
@@ -752,6 +771,18 @@ async function finishOrder(meth, cashGiven) {
   // Only reach here if save was successful
   document.getElementById('succSub').textContent =
     `Order #${ordNum} · ${otype==='dine_in'?'Dine In':'Take Away'} · ${meth.toUpperCase()} · Rp ${totalFinal.toLocaleString('id-ID')}`;
+
+  // Toast global langsung tanpa tunggu polling
+  if (window.DinePOS?.showToast) {
+    window.DinePOS.showToast({
+      type:  'success',
+      icon:  'ri-checkbox-circle-line',
+      title: 'Pembayaran Berhasil 💰',
+      msg:   `${data.invoice_code} · Rp ${totalFinal.toLocaleString('id-ID')} · ${meth.toUpperCase()}`,
+      duration: 5000,
+    });
+  }
+
   openM('mSuccess');
 }
 

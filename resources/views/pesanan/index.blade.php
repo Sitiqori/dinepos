@@ -62,6 +62,29 @@
 .btn-selesai:hover { background:#059669; color:#fff; border-color:#059669; }
 .btn-selesai:disabled { opacity:.5; cursor:not-allowed; }
 
+/* Hapus button (red) */
+.btn-hapus { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px; background:#fee2e2; color:#991b1b; border:1.5px solid #fca5a5; font-family:inherit; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.btn-hapus:hover { background:#ef4444; color:#fff; border-color:#ef4444; }
+.btn-hapus:disabled { opacity:.5; cursor:not-allowed; }
+
+/* Bulk toolbar */
+.bulk-toolbar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #eff6ff;
+  border-bottom: 1.5px solid #bfdbfe;
+  animation: slideDown .2s ease;
+}
+.bulk-toolbar.show { display: flex; }
+@keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.bulk-info { font-size:.82rem; font-weight:700; color:#1d4ed8; flex:1; }
+.btn-bulk-hapus { display:inline-flex; align-items:center; gap:6px; padding:7px 16px; border-radius:8px; background:#ef4444; color:#fff; border:none; font-family:inherit; font-size:.82rem; font-weight:700; cursor:pointer; transition:all .15s; }
+.btn-bulk-hapus:hover { background:#dc2626; }
+.btn-bulk-cancel { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; background:#fff; color:var(--text-muted); border:1.5px solid var(--border); font-family:inherit; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s; }
+.btn-bulk-cancel:hover { border-color:var(--navy); color:var(--navy); }
+
 /* Status badge */
 .obadge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:99px; font-size:.72rem; font-weight:700; flex-shrink:0; }
 .obadge-pending    { background:#fef3c7; color:#92400e; }
@@ -200,6 +223,17 @@
     </h3>
   </div>
 
+  {{-- Bulk toolbar --}}
+  <div class="bulk-toolbar" id="bulkToolbar">
+    <span class="bulk-info" id="bulkInfo">0 pesanan dipilih</span>
+    <button class="btn-bulk-hapus" onclick="hapusBulk()">
+      <i class="ri-delete-bin-line"></i> Hapus Semua Dipilih
+    </button>
+    <button class="btn-bulk-cancel" onclick="clearSelection()">
+      <i class="ri-close-line"></i> Batal
+    </button>
+  </div>
+
   @forelse($orders as $order)
   @php
     $firstItem    = $order->items->first();
@@ -209,7 +243,7 @@
     $isActive     = in_array($order->status, ['pending', 'processing']);
   @endphp
   <div class="order-row" id="orow-{{ $order->id }}">
-    <input type="checkbox" class="orow-check row-chk" />
+    <input type="checkbox" class="orow-check row-chk" data-id="{{ $order->id }}" onchange="onRowCheck()" />
     <i class="ri-edit-line orow-edit" onclick="openDetail({{ $order->id }})" title="Edit"></i>
 
     <div class="orow-body">
@@ -250,6 +284,11 @@
       {{-- Detail button --}}
       <button class="btn-detail" onclick="openDetail({{ $order->id }})">
         Lihat Detail <i class="ri-eye-line"></i>
+      </button>
+
+      {{-- Hapus button --}}
+      <button class="btn-hapus" onclick="hapusPesanan({{ $order->id }}, '{{ $order->order_code }}', this)">
+        <i class="ri-delete-bin-line"></i>
       </button>
     </div>
 
@@ -293,6 +332,39 @@
       <div style="text-align:center;padding:30px;color:var(--text-muted);">
         <i class="ri-loader-4-line" style="font-size:2rem;animation:spin 1s linear infinite;display:block;margin-bottom:8px;"></i>
         Memuat data...
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- ════ MODAL: KONFIRMASI HAPUS ════ --}}
+<div class="mbd" id="mHapus">
+  <div class="mbox" style="max-width:400px;">
+    <div class="mhd">
+      <h3 style="color:var(--red);">Hapus Pesanan</h3>
+      <button class="mcls" onclick="document.getElementById('mHapus').classList.remove('show')"><i class="ri-close-line"></i></button>
+    </div>
+    <div class="mbody">
+      <div style="text-align:center;padding:8px 0 20px;">
+        <div style="width:56px;height:56px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.5rem;color:#ef4444;">
+          <i class="ri-delete-bin-line"></i>
+        </div>
+        <p style="font-size:.9rem;color:var(--text);font-weight:600;margin-bottom:6px;">
+          Hapus pesanan <span id="hapusOrderCode" style="color:var(--navy)"></span>?
+        </p>
+        <p style="font-size:.8rem;color:var(--text-muted);">
+          Tindakan ini tidak bisa dibatalkan. Data pesanan dan item-nya akan dihapus permanen.
+        </p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="document.getElementById('mHapus').classList.remove('show')"
+          style="flex:1;padding:11px;border-radius:10px;background:#fff;border:1.5px solid var(--border);font-family:inherit;font-size:.875rem;font-weight:700;cursor:pointer;">
+          Batal
+        </button>
+        <button id="btnKonfirmasiHapus" onclick="konfirmasiHapus()"
+          style="flex:1;padding:11px;border-radius:10px;background:#ef4444;color:#fff;border:none;font-family:inherit;font-size:.875rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="ri-delete-bin-line"></i> Ya, Hapus
+        </button>
       </div>
     </div>
   </div>
@@ -460,6 +532,11 @@ function renderDetail(order) {
     actionBtns += `<span style="font-size:.82rem;color:var(--text-muted);align-self:center;"><i class="ri-checkbox-circle-line" style="color:var(--green)"></i> Pesanan selesai</span>`;
   }
 
+  // Tombol hapus selalu ada
+  actionBtns += `<button class="mbtn-hapus" onclick="hapusPesananModal()" style="background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:10px;padding:11px 16px;font-family:inherit;font-size:.875rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;">
+    <i class="ri-delete-bin-line"></i> Hapus
+  </button>`;
+
   document.getElementById('mDetailBody').innerHTML = `
     <div class="detail-info-box">
       <div>
@@ -532,9 +609,125 @@ async function modalUpdate(newStatus) {
   }
 }
 
-// ─── Checkbox all ─────────────────────────────────────
+// ─── Hapus pesanan ────────────────────────────────────
+let hapusTargetId = null;
+
+function hapusPesanan(id, code, btnEl) {
+  hapusTargetId = id;
+  document.getElementById('hapusOrderCode').textContent = code;
+  document.getElementById('mHapus').classList.add('show');
+}
+
+function hapusPesananModal() {
+  if (!currentOrderId) return;
+  closeModal();
+  const row = document.getElementById(`orow-${currentOrderId}`);
+  const code = row?.querySelector('.orow-meta')?.textContent?.split('·')[0]?.trim() ?? '';
+  hapusTargetId = currentOrderId;
+  document.getElementById('hapusOrderCode').textContent = code;
+  document.getElementById('mHapus').classList.add('show');
+}
+
+async function konfirmasiHapus() {
+  if (!hapusTargetId) return;
+  const btn = document.getElementById('btnKonfirmasiHapus');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ri-loader-4-line" style="animation:spin 1s linear infinite"></i> Menghapus...';
+
+  try {
+    const res  = await fetch(`${baseUrl}/${hapusTargetId}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('mHapus').classList.remove('show');
+      const row = document.getElementById(`orow-${hapusTargetId}`);
+      if (row) {
+        row.style.transition = 'all .35s ease';
+        row.style.opacity    = '0';
+        row.style.transform  = 'translateX(20px)';
+        setTimeout(() => { row.remove(); checkEmptyList(); }, 360);
+      }
+      toast(data.message || 'Pesanan berhasil dihapus.', 'success');
+    } else {
+      toast(data.message || 'Gagal menghapus.', 'error');
+    }
+  } catch(e) {
+    toast('Terjadi kesalahan.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ri-delete-bin-line"></i> Ya, Hapus';
+    hapusTargetId = null;
+  }
+}
+
+// ─── Checkbox & bulk selection ───────────────────────
 function toggleAll(chk) {
   document.querySelectorAll('.row-chk').forEach(c => c.checked = chk.checked);
+  onRowCheck();
+}
+
+function onRowCheck() {
+  const checked = document.querySelectorAll('.row-chk:checked');
+  const toolbar = document.getElementById('bulkToolbar');
+  const info    = document.getElementById('bulkInfo');
+  if (checked.length > 0) {
+    toolbar.classList.add('show');
+    info.textContent = `${checked.length} pesanan dipilih`;
+  } else {
+    toolbar.classList.remove('show');
+    document.getElementById('chkAll').checked = false;
+  }
+}
+
+function clearSelection() {
+  document.querySelectorAll('.row-chk').forEach(c => c.checked = false);
+  document.getElementById('chkAll').checked = false;
+  document.getElementById('bulkToolbar').classList.remove('show');
+}
+
+async function hapusBulk() {
+  const checked = document.querySelectorAll('.row-chk:checked');
+  if (!checked.length) return;
+  const ids = [...checked].map(c => parseInt(c.dataset.id));
+
+  if (!confirm(`Hapus ${ids.length} pesanan? Stok akan dikembalikan otomatis.`)) return;
+
+  const btn = document.querySelector('.btn-bulk-hapus');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ri-loader-4-line" style="animation:spin 1s linear infinite"></i> Menghapus...';
+
+  try {
+    const res  = await fetch(baseUrl, {
+      method: 'DELETE',
+      headers: { 'Content-Type':'application/json', 'Accept':'application/json', 'X-CSRF-TOKEN':CSRF },
+      body: JSON.stringify({ ids }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      ids.forEach(id => {
+        const row = document.getElementById(`orow-${id}`);
+        if (row) {
+          row.style.transition = 'all .3s ease';
+          row.style.opacity    = '0';
+          row.style.transform  = 'translateX(20px)';
+          setTimeout(() => { row.remove(); checkEmptyList(); }, 320);
+        }
+      });
+      clearSelection();
+      toast(data.message, 'success');
+    } else {
+      toast(data.message || 'Gagal menghapus.', 'error');
+    }
+  } catch(e) {
+    toast('Terjadi kesalahan.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ri-delete-bin-line"></i> Hapus Semua Dipilih';
+  }
 }
 
 // ─── Search debounce ──────────────────────────────────
