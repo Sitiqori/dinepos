@@ -15,7 +15,7 @@
 }
 .am-stat-icon { width:42px; height:42px; border-radius:var(--radius-sm); background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
 .am-stat-label { font-size:.82rem; color:var(--text-muted); font-weight:600; }
-.am-stat-val   { font-size:1.6rem; font-weight:800; color:var(--navy); font-family:'Syne',sans-serif; line-height:1; margin-top:2px; }
+.am-stat-val   { font-size:1.6rem; font-weight:800; color:var(--navy); font-family:'Poppins',sans-serif; line-height:1; margin-top:2px; }
 
 /* ─── Filter tabs + toolbar ──────────── */
 .am-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; flex-wrap:wrap; }

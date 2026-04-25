@@ -190,11 +190,11 @@
 .stat-icon.orange { background: #fef3c7; color: var(--orange); }
 
 .stat-body { flex: 1; min-width: 0; }
-.stat-label { font-size: .88rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
-.stat-value { font-size: 1.7rem; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--navy); margin-top: 2px; line-height: 1.5; }
+.stat-label { font-size: .82rem; font-weight: 600; font-family: 'Poppins', sans-serif; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.stat-value { font-size: 1.7rem; font-weight: 700; font-family: 'Poppins', sans-serif; color: var(--navy); margin-top: 2px; line-height: 1.4; }
 .stat-value.green  { color: var(--teal); }
 .stat-value.purple { color: var(--purple); }
-.stat-delta { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+.stat-delta { font-size: .72rem; font-family: 'Poppins', sans-serif; font-weight: 500; color: var(--text-muted); margin-top: 2px; }
 .stat-delta.up { color: var(--green); }
 .stat-delta.down { color: var(--red); }
 

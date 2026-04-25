@@ -10,7 +10,7 @@
 .pes-stat { background:#fff; border:1px solid var(--border); border-radius:var(--radius-md); padding:18px 20px; display:flex; align-items:center; gap:14px; }
 .pes-stat-icon { width:44px; height:44px; border-radius:var(--radius-sm); background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
 .pes-stat-label { font-size:.82rem; color:var(--text-muted); font-weight:600; margin-bottom:2px; }
-.pes-stat-val { font-size:1.5rem; font-weight:800; color:var(--navy); font-family:'Syne',sans-serif; }
+.pes-stat-val { font-size:1.5rem; font-weight:800; color:var(--navy); font-family:'Poppins',sans-serif; }
 
 /* ─── Status tabs ────────────────────── */
 .status-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }

@@ -11,7 +11,7 @@
 .lp-stat { background:#fff; border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 20px; display:flex; align-items:center; gap:14px; }
 .lp-stat-icon { width:44px; height:44px; border-radius:var(--radius-sm); background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
 .lp-stat-label { font-size:.88rem; color:var(--text-muted); font-weight:600; margin-bottom:2px; }
-.lp-stat-val   { font-size:1.9rem; font-weight:800; color:var(--navy); font-family:'Syne',sans-serif; }
+.lp-stat-val   { font-size:1.9rem; font-weight:800; color:var(--navy); font-family:'Poppins',sans-serif; }
 .lp-chart-title { font-size:1.1rem; }
 .lp-top-title { font-size:1.1rem; }
 .lp-tab { font-size:.9rem; }
@@ -66,7 +66,7 @@
 .top-prod-name { font-weight:700; font-size:.875rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .top-prod-cat  { font-size:.72rem; color:var(--text-muted); margin-top:1px; }
 .top-prod-qty  { text-align:right; flex-shrink:0; }
-.top-prod-num  { font-size:1rem; font-weight:800; color:var(--navy); font-family:'Syne',sans-serif; }
+.top-prod-num  { font-size:1rem; font-weight:800; color:var(--navy); font-family:'Poppins',sans-serif; }
 .top-prod-sub  { font-size:.7rem; color:var(--text-muted); }
 
 /* ─── Pengeluaran section ────────────── */

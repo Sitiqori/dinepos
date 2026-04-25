@@ -37,7 +37,7 @@
 .rt-stat-label { font-size: .78rem; color: var(--text-muted); font-weight: 600; margin-bottom: 3px; }
 .rt-stat-val   {
   font-size: 1.25rem; font-weight: 800;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Poppins', sans-serif;
   color: var(--navy);
 }
 .rt-stat-val.teal   { color: var(--teal); }
@@ -193,7 +193,7 @@
 .mt-row .mr { font-weight: 600; color: var(--text); }
 .mt-row.final { padding-top: 8px; border-top: 1.5px solid var(--border); margin-top: 4px; }
 .mt-row.final .ml { font-weight: 700; font-size: .9rem; color: var(--text); }
-.mt-row.final .mr { font-weight: 800; font-size: 1.1rem; color: var(--navy); font-family: 'Syne', sans-serif; }
+.mt-row.final .mr { font-weight: 800; font-size: 1.1rem; color: var(--navy); font-family: 'Poppins', sans-serif; }
 
 /* Payment section */
 .modal-payment { padding: 12px 0 4px; }
