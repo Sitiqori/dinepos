@@ -165,10 +165,12 @@
 
 <div class="auth-left">
   <div class="auth-logo">
-    <img src="{{ asset('images/logo.png') }}" alt="DINE POS" />
+    <img src="{{ asset('images/Logo(mini).png') }}" alt="DINE POS" />
     <span>DINE POS</span>
   </div>
-  <div class="auth-illustration">🍽️</div>
+  <div class="auth-illustration">
+  <img src="{{ asset('images/Logo(XL).png') }}" alt="DINE POS" style="width:150%;height:150%;object-fit:contain;" />
+</div>
   <div class="auth-left-foot">
     &copy; Copyright {{ date('Y') }}, All Rights Reserved by DINEPOS
   </div>

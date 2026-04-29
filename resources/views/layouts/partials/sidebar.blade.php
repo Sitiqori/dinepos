@@ -2,7 +2,7 @@
 
   {{-- Logo --}}
   <div class="sidebar-logo">
-    <img src="{{ asset('images/logo.png') }}" alt="DINE POS Logo" />
+    <img src="{{ asset('images/Logo(mini_dark).png') }}" alt="DINE POS Logo" />
     <span class="brand-name">DINE POS</span>
   </div>
 
