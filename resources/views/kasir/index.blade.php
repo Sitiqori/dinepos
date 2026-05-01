@@ -259,8 +259,7 @@
              data-price="{{ $p->price }}"
              data-stock="{{ $p->stock }}"
              data-cat="{{ $p->category_id }}"
-             data-catname="{{ $p->category?->name ?? 'Produk' }}"
-             onclick="addToCart(this)">
+             data-catname="{{ $p->category?->name ?? 'Produk' }}">
           <span class="catbadge">{{ $p->category?->name ?? 'Produk' }}</span>
           @if($p->image)
             <img src="{{ asset('storage/'.$p->image) }}" alt="{{ $p->name }}" loading="lazy" />
@@ -409,7 +408,7 @@
     </div>
     <div class="mbody" style="padding-top:8px;">
       <div class="qrisbox">
-        <div class="ricon">🍜</div>
+        <img src="{{ asset('images/Logo2.png') }}" alt="Logo" style="height:48px;object-fit:contain;display:block;margin:0 auto 4px;" />
         <div class="qsname">Resto DimsumGo Jl. xxx</div>
         <div class="qsphone">No. Telp +62 895-3387-2036-8</div>
         <div class="qrimg"><img id="qrImg" src="" alt="QR" /></div>
@@ -467,11 +466,16 @@ let lastReceipt = null;
 
 // ─── CART ────────────────────────────────────────
 function addToCart(el) {
-  const id = el.dataset.id, name = el.dataset.name,
-        price = parseInt(el.dataset.price), stock = parseInt(el.dataset.stock),
-        code = el.dataset.code || '';
+  const id = el.dataset.id;
+  if (!id) { console.warn('addToCart: no id on element', el); return; }
+  const name  = el.dataset.name,
+        price = parseInt(el.dataset.price),
+        stock = parseInt(el.dataset.stock),
+        code  = el.dataset.code || '';
+  if (isNaN(price) || isNaN(stock)) { console.warn('addToCart: bad data', el.dataset); return; }
+  if (stock <= 0) { toast('Stok habis!', 'error'); return; }
   if (cart[id]) {
-    if (cart[id].qty >= stock) { toast('Stok tidak cukup!','error'); return; }
+    if (cart[id].qty >= stock) { toast('Stok tidak cukup!', 'error'); return; }
     cart[id].qty++;
   } else {
     cart[id] = { id, name, code, price, qty: 1, stock };
@@ -484,7 +488,7 @@ function addToCart(el) {
 function chgQty(id, d) {
   if (!cart[id]) return;
   const stock = cart[id].stock;
-  if (d > 0 && cart[id].qty >= stock) { toast('Stok tidak cukup!','error'); return; }
+  if (d > 0 && cart[id].qty >= stock) { toast('Stok tidak cukup!', 'error'); return; }
   cart[id].qty += d;
   if (cart[id].qty <= 0) {
     delete cart[id];
@@ -492,7 +496,9 @@ function chgQty(id, d) {
     card?.classList.remove('in-cart');
     updateCardControl(id);
   } else {
-    updateCardControl(id);
+    // Update angka qty di span tanpa rebuild seluruh ctrl
+    const span = document.getElementById(`pqval-${id}`);
+    if (span) span.textContent = cart[id].qty;
   }
   renderCart();
 }
@@ -519,22 +525,51 @@ function updateCardControl(id) {
   const card = document.querySelector(`[data-id="${id}"]`);
   if (!card) return;
   const bottom = card.querySelector('.pbottom');
-  const existing = bottom.querySelector('.paddbtn, .pqty-ctrl');
-  if (existing) existing.remove();
+  if (!bottom) return;
+
+  // Hapus semua kontrol lama
+  bottom.querySelectorAll('.paddbtn, .pqty-ctrl').forEach(el => el.remove());
+
+  // Reset semua event pada card
+  const freshCard = card.cloneNode(false);
+  // Tidak clone — cukup reset onclick
+  card.onclick = null;
+  card.removeAttribute('onclick');
 
   if (cart[id]) {
+    card.classList.add('in-cart');
+    card.style.cursor = 'default';
+    card.onclick = null;
+
     const ctrl = document.createElement('div');
     ctrl.className = 'pqty-ctrl';
-    ctrl.innerHTML = `
-      <button onclick="event.stopPropagation();chgQty('${id}',-1)">−</button>
-      <span class="pqval" id="pqval-${id}">${cart[id].qty}</span>
-      <button onclick="event.stopPropagation();chgQty('${id}',1)">+</button>`;
+
+    const btnMin = document.createElement('button');
+    btnMin.textContent = '−';
+    btnMin.addEventListener('click', e => { e.stopPropagation(); chgQty(id, -1); });
+
+    const span = document.createElement('span');
+    span.className = 'pqval';
+    span.id = `pqval-${id}`;
+    span.textContent = cart[id].qty;
+
+    const btnPlus = document.createElement('button');
+    btnPlus.textContent = '+';
+    btnPlus.addEventListener('click', e => { e.stopPropagation(); chgQty(id, 1); });
+
+    ctrl.appendChild(btnMin);
+    ctrl.appendChild(span);
+    ctrl.appendChild(btnPlus);
     bottom.appendChild(ctrl);
   } else {
+    card.classList.remove('in-cart');
+    card.style.cursor = 'pointer';
+    card.onclick = () => addToCart(card);
+
     const btn = document.createElement('button');
     btn.className = 'paddbtn';
     btn.innerHTML = '<i class="ri-add-line"></i>';
-    btn.onclick = function(e) { e.stopPropagation(); addToCart(card); };
+    btn.addEventListener('click', e => { e.stopPropagation(); addToCart(card); });
     bottom.appendChild(btn);
   }
 }
@@ -772,16 +807,25 @@ async function finishOrder(meth, cashGiven) {
   document.getElementById('succSub').textContent =
     `Order #${ordNum} · ${otype==='dine_in'?'Dine In':'Take Away'} · ${meth.toUpperCase()} · Rp ${totalFinal.toLocaleString('id-ID')}`;
 
-  // Toast global langsung tanpa tunggu polling
-  if (window.DinePOS?.showToast) {
-    window.DinePOS.showToast({
-      type:  'success',
-      icon:  'ri-checkbox-circle-line',
-      title: 'Pembayaran Berhasil 💰',
-      msg:   `${data.invoice_code} · Rp ${totalFinal.toLocaleString('id-ID')} · ${meth.toUpperCase()}`,
-      duration: 5000,
-    });
+  // Fix 2: clearCart dulu (reset semua kartu ke tombol +), baru reset payBtn
+  clearCart();
+  renderCart();
+
+  // Fix 3: Setelah clearCart, paksa updateCardControl untuk kartu yang stocknya berubah
+  if (lastReceipt && lastReceipt.items) {
+    lastReceipt.items.forEach(item => updateCardControl(String(item.id)));
   }
+
+  // Fix 4: Reset payBtn setelah clearCart (renderCart sudah disable-kan jika kosong)
+  if (payBtnEl) { payBtnEl.disabled = true; payBtnEl.innerHTML = '<i class="ri-secure-payment-line"></i> Bayar (F9)'; }
+
+  // Fix 5: Toast notifikasi pembayaran langsung pakai toast() lokal
+  toast(`✅ Pembayaran Berhasil — ${data.invoice_code} · Rp ${totalFinal.toLocaleString('id-ID')} · ${meth.toUpperCase()}`, 'success');
+
+  // Fix 6: Toast notifikasi pesanan dikirim ke dapur
+  setTimeout(() => {
+    toast(`🍽️ Pesanan #${data.order_code} dikirim ke dapur!`, 'success');
+  }, 600);
 
   openM('mSuccess');
 }
@@ -812,7 +856,7 @@ function buildReceipt() {
     : `<div class="rsrow"><span>Bayar (QRIS)</span><span>Rp ${r.total.toLocaleString('id-ID')}</span></div>`;
 
   document.getElementById('rctContent').innerHTML = `
-    <div class="rlogoarea"><div class="ricon">🍜</div>
+    <div class="rlogoarea"><img src="{{ asset('images/Logo2.png') }}" alt="Logo" style="height:48px;object-fit:contain;display:block;margin:0 auto 4px;" />
       <div class="rstore">Resto DimsumGo Jl. xxx</div>
       <div class="rphone">No. Telp +62 895-3387-2036-8</div>
     </div>
@@ -863,8 +907,8 @@ function newOrder() {
   const payBtnEl = document.getElementById('payBtn');
   if (payBtnEl) { payBtnEl.disabled = true; payBtnEl.innerHTML = '<i class="ri-secure-payment-line"></i> Bayar (F9)'; }
 
-  // Refresh page stock data after 500ms so product cards show updated stock
-  setTimeout(() => window.location.reload(), 600);
+  // Paksa render ulang semua kartu produk ke tombol + (tanpa reload)
+  document.querySelectorAll(".pcard").forEach(card => updateCardControl(card.dataset.id));
 }
 
 // ─── FILTER ──────────────────────────────────────
