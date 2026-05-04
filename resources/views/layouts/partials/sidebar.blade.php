@@ -131,8 +131,8 @@
         <div class="user-name">{{ auth()->user()->name }}</div>
         <div class="user-role">{{ ucfirst(auth()->user()->role) }}</div>
       </div>
-      <a href="{{ route('logout') }}"
-         onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+      <a href="#"
+         onclick="confirmLogout(event)"
          class="logout-btn" data-tooltip="Keluar">
         <i class="ri-logout-box-r-line"></i>
       </a>
@@ -141,5 +141,33 @@
       @csrf
     </form>
   </div>
+
+  {{-- Logout Confirm Modal --}}
+  <div id="logoutModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+      <div style="font-size:2rem;margin-bottom:8px;">👋</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#1a1a2e;margin-bottom:6px;">Yakin ingin keluar?</div>
+      <div style="font-size:.875rem;color:#6b7280;margin-bottom:22px;">Sesi kamu akan diakhiri.</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="document.getElementById('logoutModal').style.display='none'"
+          style="padding:9px 22px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;font-size:.875rem;font-weight:600;cursor:pointer;color:#374151;">
+          Batal
+        </button>
+        <button onclick="document.getElementById('logout-form').submit()"
+          style="padding:9px 22px;border-radius:8px;border:none;background:#e53935;color:#fff;font-size:.875rem;font-weight:600;cursor:pointer;">
+          Ya, Keluar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  function confirmLogout(e) {
+    e.preventDefault();
+    const m = document.getElementById('logoutModal');
+    m.style.display = 'flex';
+    m.addEventListener('click', function(ev){ if(ev.target===m) m.style.display='none'; });
+  }
+  </script>
 
 </aside>

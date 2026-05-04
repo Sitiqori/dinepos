@@ -217,9 +217,23 @@
 
 /* Print area */
 #printArea { display:none; }
+@page {
+  size: A4 portrait;
+  margin: 15mm 20mm;
+}
 @media print {
-  body > *:not(#printArea) { display:none !important; }
-  #printArea { display:block !important; font-family:monospace; font-size:12px; padding:20px; }
+  html, body { height:auto !important; overflow:visible !important; }
+  body * { visibility:hidden !important; }
+  #printArea, #printArea * { visibility:visible !important; }
+  #printArea {
+    display:block !important;
+    position:absolute;
+    top:0; left:0;
+    width:100%;
+    font-family:monospace;
+    font-size:15px;
+    background:#fff;
+  }
 }
 </style>
 @endpush
@@ -542,50 +556,50 @@ function buildAndPrint(id) {
 
   const itemRows = items.map(i => `
     <div style="display:flex;justify-content:space-between;padding:3px 0;">
-      <span style="font-weight:600;">${i.name}</span>
-      <span>Rp ${parseInt(i.subtotal).toLocaleString('id-ID')}</span>
+      <span style="font-weight:600;font-size:15px;">${i.name}</span>
+      <span style="font-size:15px;">Rp ${parseInt(i.subtotal).toLocaleString('id-ID')}</span>
     </div>
-    <div style="font-size:11px;color:#666;">Rp ${parseInt(i.price).toLocaleString('id-ID')} × ${i.qty}</div>`).join('');
+    <div style="font-size:14px;color:#666;">Rp ${parseInt(i.price).toLocaleString('id-ID')} × ${i.qty}</div>`).join('');
 
   document.getElementById('printArea').innerHTML = `
     <div style="text-align:center;margin-bottom:10px;">
-      <div style="font-size:16px;font-weight:800;">🍜 DINE POS</div>
-      <div style="font-size:11px;color:#666;">Struk Pembayaran</div>
+      <img src="/images/Logo2.png" style="display:block;margin:0 auto 6px;max-width:130px;height:auto;" />
+      <div style="font-size:15px;color:#666;">Struk Pembayaran</div>
     </div>
     <hr style="border-top:1px dashed #000;margin:8px 0;" />
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:15px;">
       <span>Invoice</span><span style="text-align:right;font-weight:700;">${tx.invoice_code}</span>
       <span>Tanggal</span><span style="text-align:right;">${tx.paid_at}</span>
       <span>Kasir</span><span style="text-align:right;">${tx.kasir}</span>
       ${tx.customer_name ? `<span>Pelanggan</span><span style="text-align:right;">${tx.customer_name}</span>` : ''}
     </div>
-    ${tx.notes ? `<div style="font-size:10px;color:#666;font-style:italic;margin:4px 0;">Catatan: ${tx.notes}</div>` : ''}
+    ${tx.notes ? `<div style="font-size:14px;color:#666;font-style:italic;margin:4px 0;">Catatan: ${tx.notes}</div>` : ''}
     <hr style="border-top:1px dashed #000;margin:8px 0;" />
     ${itemRows}
     <hr style="border-top:1px dashed #000;margin:8px 0;" />
-    <div style="display:flex;justify-content:space-between;font-size:11px;">
+    <div style="display:flex;justify-content:space-between;font-size:15px;">
       <span>Sub Total</span><span>Rp ${subtotal.toLocaleString('id-ID')}</span>
     </div>
-    <div style="display:flex;justify-content:space-between;font-weight:800;font-size:13px;margin-top:4px;">
+    <div style="display:flex;justify-content:space-between;font-weight:800;font-size:17px;margin-top:4px;">
       <span>Total Bayar</span><span>Rp ${parseInt(tx.amount).toLocaleString('id-ID')}</span>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;">
+    <div style="display:flex;justify-content:space-between;font-size:15px;">
       <span>Metode</span><span>${methLbl}</span>
     </div>
     ${cashGiven > 0 ? `
-    <div style="display:flex;justify-content:space-between;font-size:11px;">
+    <div style="display:flex;justify-content:space-between;font-size:15px;">
       <span>Tunai</span><span>Rp ${cashGiven.toLocaleString('id-ID')}</span>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;">
+    <div style="display:flex;justify-content:space-between;font-size:15px;">
       <span>Kembalian</span><span style="color:green;">Rp ${parseInt(tx.change_amount||0).toLocaleString('id-ID')}</span>
     </div>` : ''}
     <hr style="border-top:1px dashed #000;margin:8px 0;" />
-    <div style="text-align:center;font-size:10px;color:#666;">
+    <div style="text-align:center;font-size:14px;color:#666;">
       Terima kasih telah berkunjung!<br>
       DINE POS &copy; {{ date('Y') }}
     </div>`;
 
-  window.print();
+  setTimeout(() => window.print(), 100);
 }
 
 // ─── Date panel toggle ────────────────────────────
